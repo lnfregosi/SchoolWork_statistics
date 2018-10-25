@@ -1,0 +1,33 @@
+*Get data
+proc import out=work.lab1 datafile="C:\Users\stingj01\Downloads\air_births_sample.xlsx" 
+	dbms=xlsx replace; 
+getnames=yes;
+run;
+	   
+     
+*Use linear regression to estimate the relationship between PM2.5 concentration during 
+pregnancy and subsequent birthweight
+
+proc reg data=work.lab1 plots=none; /* plots=none option suppresses plots, saves time */
+model birthweight=pm_conc;
+run;
+quit;
+
+*Create a variable indicating whether the mother was 
+*obese (BMI=30) before becoming pregnant
+
+data work.lab1plus;
+set work.lab1;
+   obese = (prepreg_bmi>=30);     /* assigns a value of 1 if bmi>=30, otherwise assigns zero */
+   if prepreg_bmi=. then obese=.; /* replaces incorrect 0 with correct missing (.) when bmi is missing */
+run;
+
+*Test whether average birthweight differs between children 
+*of obese and non-obese mothers
+
+proc ttest data=work.lab1plus;
+   class obese;       /* class variable defines the two groups being compared */
+   var birthweight;   /* var statement lists all variables whose means are to be tested/compared */
+run; 
+
+ods rtf close; 
