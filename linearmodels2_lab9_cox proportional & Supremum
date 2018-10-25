@@ -1,0 +1,82 @@
+libname lab "...";
+
+*Estimating Kaplan-Meier for whole cohort; 
+proc lifetest data=lab.cirrhosis plots=s method=km;
+	time YEARS*STATUS(0);
+run;
+
+*Exploring survival across groups; 
+*based on prior code, 3, 5, and 10 years seem useful points of contrast;
+proc lifetest data=lab.cirrhosis plots=s method=km timelist=(3 5 10);
+	time YEARS*STATUS(0);
+	strata rx;
+run;
+
+*Cox PH model testing cholest and bilirubin effects;
+proc phreg data=lab.cirrhosis;
+	MODEL YEARS*STATUS(0)= cholest bilirubin /rl;
+run;
+
+*Cox PH model with custom hazard ratios based on 10/100 unit increases;
+proc phreg data=lab.cirrhosis;
+	MODEL YEARS*STATUS(0)= cholest bilirubin /rl;
+	hazardratio cholest /units=100;
+	hazardratio bilirubin /units=10;
+run;
+
+*Q3;
+proc phreg data=lab.cirrhosis;
+	class rx (ref='0') hepatom (ref='0')/param=ref;
+	MODEL YEARS*STATUS(0)= rx hepatom;
+run;
+
+*Dissecting interactions in the Cox PH;
+proc phreg data=lab.cirrhosis;
+	class rx (ref='0') hepatom (ref='0')/param=ref;
+	MODEL YEARS*STATUS(0)= rx hepatom  rx*hepatom;
+	hazardratio hepatom /at(rx='0') diff=ref;
+	hazardratio hepatom /at(rx='1') diff=ref;
+run;
+
+*multi-variable Cox PH;
+proc phreg data=lab.cirrhosis;
+class sex(ref='0') rx(ref='0') hepatom(ref='0')/param=ref;
+MODEL YEARS*STATUS(0)= rx hepatom sex bilirubin /rl;
+run;
+
+*Using Cox PH to model whole-cohort survival; 
+proc phreg data=lab.cirrhosis plots=s;
+	class sex(ref='0') rx(ref='0') hepatom(ref='0')/param=ref;
+	MODEL YEARS*STATUS(0)= rx hepatom sex bilirubin /rl;
+run;
+
+*Define a set of baseline covariates. Here we specify two subjects with varying levels of rx, sex, hepatom, and bilirubin;
+data cirrhosis_inrisks;
+input rx sex hepatom bilirubin person_id;
+datalines;
+1 0 1 2.6 1
+0 0 1 2.6 2
+;
+run;
+*using the covariate values specified in cirrhosis_inrisks dataset, we can predict associated survival functions;
+proc phreg data=lab.cirrhosis plots(overlay)=s;
+	class sex(ref='0') rx(ref='0') hepatom(ref='0') /param=ref;
+	MODEL YEARS*STATUS(0)= rx hepatom sex bilirubin /rl;
+	baseline covariates=cirrhosis_inrisks out=cirrhosis_survest survival=_ALL_ /id=person_id;
+run;
+
+*Creating a time-varying interaction to test assumption of proportional hazards; 
+proc phreg data=lab.cirrhosis;
+class sex(ref='0') rx(ref='0') hepatom(ref='0') /param=ref;
+MODEL YEARS*STATUS(0)= rx hepatom sex bilirubin rx_t /rl;
+rx_t = rx*years;
+test1: test rx_t=0;
+run;
+
+*Using Supremum assay to test proportional hazards; 
+proc phreg data=lab.cirrhosis;
+class sex(ref='0') rx(ref='0') hepatom(ref='0') /param=ref;
+MODEL YEARS*STATUS(0)= rx hepatom sex bilirubin /rl;
+ASSESS PH/RESAMPLE;
+run;
+
