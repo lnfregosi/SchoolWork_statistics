@@ -1,0 +1,14 @@
+* To sort the variables by alphabetical order;
+title 'VARIABLES IN ALPHABETICAL ORDER';
+proc contents data = biostats.lab1;
+run;
+ 
+* To sort the variables by dataset order;
+title 'VARIABLES IN DATASET ORDER';
+proc contents data = biostats.lab1 order=varnum;
+run;
+ 
+* Print the first twenty overservations in the dataset;
+title 'FIRST TWENTY OBSERVATIONS';
+proc print data = biostats.lab1(obs=20);
+run;
