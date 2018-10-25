@@ -1,0 +1,41 @@
+libname lab "...";
+
+*view dataset;
+proc print data=lab.cyto noobs; run;
+
+*Simple exploratory tables;
+proc freq data=lab.cyto;
+	Table censor;
+run;
+
+*Call Kaplan Meier plot of S(t);
+proc lifetest data=lab.cyto plots=(s) atrisk method=km;
+	time time*censor(0);
+run;
+
+*Call Life Table estimation of S(t);
+proc lifetest data=lab.cyto plots=(s) method=lt;
+	time time*censor(0);
+run;
+
+*Request custom intervals; 
+proc lifetest data=lab.cyto plots=(s) method=lt intervals=90 180 270 360;
+	time time*censor(0);
+run;
+/*******Note that the following would also work:  */
+proc lifetest data=lab.cyto plots=(s) method=lt intervals=90 to 360 by 90;
+	time time*censor(0);
+run;
+
+*Contrasting survival curves;
+proc lifetest data=lab.cyto plots=(s) atrisk method=km;
+	time time*censor(0);
+	strata group;
+run;
+
+*Contrasts with custom dates via timelist statement;
+proc lifetest data=lab.cyto plots=(s) method=km timelist=103;
+	time time*censor(0);
+	strata group;
+run;
+
