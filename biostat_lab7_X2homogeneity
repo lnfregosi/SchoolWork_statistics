@@ -1,0 +1,57 @@
+*You are given a dataset, indicating which therapy a subject was assigned to and the grade of their complication. 
+
+*The complications are reported using the Clavian-Dindo surgical complication system (http://www.assessurgery.com/clavien-dindo-classification/)
+*with grades 3-5 being defined as serious complications. 
+
+*Please use SAS Proc Freq to generate a 2x2 contingency table, and estimate the relative risk and odds ratio of 
+*complications. Test whether the risk of complications is different between therapies, using the chi-square test 
+*of homogeneity.
+
+libname lab7 "/folders/myfolders/Biostats17/datasets/";
+
+proc import datafile="/folders/myfolders/Biostats17/datasets/Lab7Data.xlsx"
+	DBMS=XLSX
+	OUT=lab7.excel_data
+	REPLACE;
+RUN;
+
+data lab7.excel_data2;
+set lab7.excel_data (rename=(VAR3 = CDClass));
+if CDClass <= 2 then Comp = "Mild/None";
+else Comp = "Major";
+run;
+
+proc freq data=lab7.excel_data2;
+tables therapy*comp / relrisk chisq;
+run;
+
+
+*Suppose you are not given the entire dataset, but just the summary statistics. 
+*Using the following information, please perform the same tests as above:
+**given a 2x2 table 
+E+O+ 89
+E+O- 911
+E-O+ 127
+E-O- 873
+
+
+data one;
+input therapy complic $ count;
+cards;
+1 z_No 911
+1 Yes 89
+2 z_No 873
+2 Yes 127
+;
+run;
+
+proc freq data=one;
+weight count;
+tables therapy*complic/ relrisk chisq;
+run;
+
+
+
+
+
+
