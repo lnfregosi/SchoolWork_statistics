@@ -1,0 +1,165 @@
+libname lab 'C:\Users\library15\Downloads\';
+
+
+***********************************************************************************************************
+A.	Create indicator variables for race. How many indicator (or ìdummyî) variables do you need to create?
+
+	Answer: Two indicator variables are needed to represent the three categories of race.
+**********************************************************************************************************;
+
+data Lab.bwtmod;
+set Lab.Birthweight;
+if race=2 then Race_Black=1; else Race_Black=0;
+if race=3 then Race_Other =1; else Race_Other=0;
+run;
+
+
+
+************************************************************************************************************
+B.	Run an ANOVA comparing birthweight across the three racial groups. What does the overall F-test tell 
+	you? What is the average birthweight in each of the three groups?
+
+	Answer: The overall F-test has an F-statistic of 4.97, corresponding to a p-value of 0.0079. 
+	This suggests that at least one category of race has an average birthweight that is significantly 
+	different than the others. The average birthweight in the white group is 3104 grams. The average 
+	birthweight in the black group is 2720 grams. The average birthweight in the other group is 2804 
+	grams.
+***********************************************************************************************************;
+ods html close; ods html;
+
+title 'ANOVA Using Proc Reg';
+proc reg data = lab.bwtmod plots=none;
+model bwt = Race_Black Race_Other;
+run;
+quit;
+
+title 'ANOVA Using Proc ANOVA';
+Proc anova data=lab.bwtmod;
+class race;
+Model bwt=race;
+Run;
+
+title 'ANOVA Using Proc GLM';
+Proc glm data=lab.bwtmod;
+class race (ref = first);
+Model bwt=race/solution;
+Run;
+quit;
+
+*EQUATION FROM REGRESSION:
+*Use to find average weight of each group
+*
+* BWT = 3104 - 384(Race_Black) - 300(Race_Other)
+*
+* BWT(White) = 3104 - 384(0) - 300(0)
+*			 = 3104
+*
+* BWT (Black) = 3104 - 384(1) - 300(0)
+*			  = 3104 - 384
+*			  = 2720
+*
+* BWT (Other) = 3104 - 384(0) - 300(1)
+*			  = 3104 - 300
+*			  = 2804
+*
+* Can Confirm with PROC MEAN results;
+
+
+*************************************************************************************************************
+C.	Which groups are different from each other? Run a test of your choice to determine which groups 
+	have significantly different average birthweights from each other. Justify your test of choice.
+
+	Answer: Tukeyís test would be appropriate because, even though we have unequal group sizes, we want 
+	to test all possible pairwise comparisons. It shows that whites are significantly different than other
+	races and blacks, but there is no significant difference between blacks and others. 
+		The Bonferroni test indicates that average birthweight is significantly different between whites and 
+		blacks and whites and other races, but not between blacks and others, just as Tukey. However, it 
+		usually has a higher Type II error rate than Tukeyís, so it isnít used.
+
+		Scheffeís test indicates only a difference between the average birthweight for white mothers and
+		mothers of other races. Since this has a higher Type II error rate than Tukeyís, it is a less 
+		desirable choice. 
+
+		Dunnettís test would not be an appropriate choice here since the interest is in all possible 
+		pairwise comparisons, while Dunnett only compares each non-reference category to a reference 
+		category. 
+*************************************************************************************************************;
+
+title 'Means of BWT by Race';
+proc means data=lab.bwtmod;
+var bwt;
+class race;
+run;
+
+title 'Significance of BWT by Race';
+proc glm data=lab.bwtmod plots = none;
+class race(ref=first);
+model bwt = race;
+means race/bon dunnett tukey scheffe;
+run;
+quit;
+
+
+
+*************************************************************************************************************
+D.	We know from our previous analyses that motherís last weight before pregnancy is associated with 
+	birthweight. Do women of different races have different pre-pregnancy weights? Use ANOVA to find out.
+
+	Answer: Yes, pre-pregnancy weight is different among women of different races, with means of 132 lbs 
+	in whites, 147 lbs in blacks, and 120 lbs in women of other races. Tukey suggests that other races 
+	have a significantly lower average pre-pregnancy weight than both white women and black women, but 
+	that the average weight of white and black women do not differ. Bonferroni and Scheffe would lead 
+	to the same conclusion.
+***********************************************************************************************************;
+ods html close; ods html;
+
+title 'Means of LWT by Race';
+proc means data=lab.bwtmod;
+var lwt;
+class race;
+run;
+
+title 'GLM with Dummy Vars';
+proc glm data=lab.bwtmod plots = none;
+model lwt= race_black race_other/solution;
+run;
+quit;
+
+title 'GLM with Tukey Post-Hoc';
+proc glm data=lab.bwtmod plots = none;
+class race(ref=first);
+model lwt=race;
+means race/tukey;
+run;
+quit;
+
+
+
+*************************************************************************************************************
+E.	Rerun your ANOVA comparing birthweight across the three racial groups while now adjusting for 
+	motherís last weight before pregnancy. What are the results? 
+
+	NOTES: p-Value for both partial F and as a whole group is exactly the same.
+
+	Answer: Even after adjusting for pre-pregnancy weight, race remains a significant predictor of 
+	birthweight (multiple partial F = 5.19, p=0.0064). Using Tukey, there is evidence that there is a 
+	significant difference in the average birthweight between whites and blacks, even after adjusting 
+	for weight before pregnancy, and between whites and women of other race but not between blacks and 
+	women of other race. 
+************************************************************************************************************;
+ods html close; ods html;
+
+title 'Adjusted ANOVA, Proc Reg with Partial F';
+proc reg data=lab.bwtmod plots = none;
+model bwt = race_black race_other lwt;
+test race_black, race_other; 
+run;
+quit;
+
+title 'Adjusted ANOVA, Proc GLM with Tukey';
+proc glm data=lab.bwtmod plots = none;
+class race(ref=first);
+model bwt = race lwt;
+means race/tukey ;
+run;
+quit;
