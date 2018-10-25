@@ -1,0 +1,31 @@
+*SAS Proc Means to generate summary statistics on the numbers of times patients exercised 
+*over the previous month and a 95% confidence interval estimate for the mean number of times 
+*patients exercised following surgery.
+
+data lab5c;
+input exer @@;
+datalines;
+14 11 8 6 5 3
+6 13 12 8 1 4
+;
+run;
+proc means data=lab5c mean std clm;
+run;
+
+
+*SAS Proc Means to generate summary statistics on the numbers of sick days taken by employees. 
+*In addition, run a test to determine if there is any evidence that the employees take fewer than 
+*9.4 sick days per year. Run the appropriate test at a 5% level of significance. (Note: SAS 
+*performs a two-sided test; make the adjustment to draw your conclusion.)
+
+data lab5d;
+input sickdays @@;
+teststat=sickdays-9.4;
+datalines;
+8 10 5 0 6 9 5 15
+5 4 3 2 0 4 15
+;
+run;
+proc means data=lab5d mean std stderr t prt;
+var data2 teststat;
+run;
