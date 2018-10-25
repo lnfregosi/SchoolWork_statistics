@@ -1,0 +1,32 @@
+* Use SAS Proc contents, freq, and ttest to generate summary statistics on the numbers of
+*sick days taken by men and women, and run the appropriate test at a 5% level of significance.
+
+data in2;
+input gender $ sickdays @@;
+cards;
+m 5 m 10 m 2 m 0 m 6 m 4 m 5 m 15
+f 8 f 9 f 3 f 5 f 0 f 4 f 15
+;
+run;
+proc contents data=in2;
+run;
+proc freq data=in2;
+run;
+proc freq order=freq data=in2;
+run;
+proc ttest;
+ class gender;
+ var sickdays;
+run;
+
+
+*Compute the sample correlation coefficient using SAS.
+
+data lab6d;
+input length charge @@;
+datalines;
+5 6 7 5 9 7.2 10 8 12 9.4 15 7.9
+;
+run;
+proc corr data=lab6d;
+run;
