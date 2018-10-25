@@ -1,0 +1,56 @@
+* Inputting the variables into SAS ;
+* input line includes the variable names in order of how you have input them;
+* the $ indicated that it is a character variable (non-numeric) – must be placed after each character variable name ;
+* datalines tells SAS that the following lines are your data (you can also use “cards”) ;
+
+
+* here we entered in each observation on its own separate line, 
+meaning that we do not need @@ signs to the input line **/
+
+data lab2;
+input roomnum $ scores age; 
+datalines;
+room1 91 22 
+room1 94 24
+room1 83 25
+room1 84 16
+room2 46 54
+room2 90 34
+room2 77 28
+room2 85 26
+;
+run;
+
+
+
+* if we entered in all of the observations on one line, 
+we would need to add @@ to the input line after the variable names **/
+
+data lab2;
+input roomnum $ scores age @@; 
+datalines;
+room1 91 22 room1 94 24 room1 83 25 room1 84 16 room2 46 54 room2 90 34 room2 77 28 room2 85 26
+;
+run;
+
+
+* proc univariate will give you univariate distribution statistics;
+* if you do not specify “var”, it will give you statistics on every variable;
+
+proc univariate data = lab2;
+var scores age;
+run;
+
+
+* proc means will also give you distribution statistics;
+* if you do not specify “var”, it will give you statistics on every variable;
+* by default, it will give you the mean, standard deviation, and min & max of each numeric variable in your dataset **/
+
+proc means data = lab2;
+run;
+
+* you can also specify which variable(s) you would like to be analyzed (var) as well as which statistics you would like to see (after the dataset name) - you have many options! **/
+
+proc means data = lab2 mean median mode stddev q1 q3;
+var scores;
+run;
