@@ -1,0 +1,45 @@
+/*libname alm 'c:\Users\Download';
+
+/* (a): create interaction variables */
+data alm.brfss;
+set alm.brfss;
+	
+  /* two-way interactions */
+	drink_age=drink_days*age;
+	drink_sleep=drink_days*poor_sleep_days;
+	age_sleep=age*poor_sleep_days;
+
+	/* three-way interaction */
+	drink_age_sleep=drink_days*age*poor_sleep_days;
+run;
+
+/* (b): run full model with main effects, two-way and three-way interactions */
+proc reg data=alm.brfss plots=none; /* plots=none reduces output and run time */
+model bmi = drink_days age poor_sleep_days /* main effects */
+		  	drink_age drink_sleep age_sleep /* two-way interactions */
+			drink_age_sleep /* three-way interaction */
+			;
+where(sex=2); /* restricts analysis to females only */
+run;
+
+*NOTE: PROC REG is still running at this point - can use interactively;
+
+/* (c): delete the three-way interaction term and test whether all two-way 
+       terms have a zero coefficient */
+delete drink_age_sleep; 
+test drink_age=drink_sleep=age_sleep=0;
+run;
+
+/* (d): now fit "main effects only" model */
+model bmi = drink_days age poor_sleep_days;
+run;
+
+
+/* (d) and (e): now look at model with only drink_days for comparison 
+   to assess whether other factors are confounders (question d) and whether they
+   help prediction (question e) */
+
+model bmi = drink_days;
+run; 
+quit;
+
