@@ -1,0 +1,79 @@
+libname class6 'C:\Users\curtip01\Desktop\Teaching\MPH0822\Lectures\Lecture 6'; run;
+
+
+
+***estimating custom odds/probabilities in logistic models;
+*here, estimate calls for a 25 year old with 6 prior drug treatments, of "other" race, with recent IV use, on short treatment, at site A ;
+proc logistic data=class6.hw2_problem3_data;
+   class race(ref='0') ivhx(ref='1') treat(ref='0') site(ref='0') /param=ref;
+   model dfree(event='1') = age race ndrugtx ivhx treat site;
+   estimate 'Q3f' intercept 1 age 25 ndrugtx 6 race 1 ivhx 0 1 treat 0 site 0 /exp ilink cl e;
+run;
+
+*note effect of reference level changes on estimate statements! (i.e., ivhx and site);
+proc logistic data=class6.hw2_problem3_data;
+   class race(ref='0') ivhx(ref='3') treat(ref='0') site(ref='1') /param=ref;
+   model dfree(event='1') = age race ndrugtx ivhx treat site;
+   estimate 'Q3f' intercept 1 age 25 ndrugtx 6 race 1 ivhx 0 0 treat 0 site 1 /exp ilink cl e;
+run;
+
+*including a few contrasts;
+proc logistic data=class6.hw2_problem3_data;
+   class race(ref='0') ivhx(ref='1') treat(ref='0') site(ref='0') /param=ref;
+   model dfree(event='1') = age race ndrugtx ivhx treat site;
+   estimate 'with race=0' intercept 1 age 25 ndrugtx 6 race 1 ivhx 1 0 treat 0 site 0 /exp ilink cl e;
+   estimate 'with race=1' intercept 1 age 25 ndrugtx 6 race 0 ivhx 1 0 treat 0 site 0 /exp ilink cl e;
+run;
+
+
+****baseline category models;
+proc logistic data=class6.endomet_cancer;
+   class agegrp(ref='50-64') estrogen_use(ref='No') smoke(ref='No') /param=ref;
+   model subtype(ref='0') = agegrp estrogen_use smoke /link=glogit;
+run;
+
+
+***Contingency table analyses
+*model testing homogenous model, i.e. seatbelt*ejected, seatbelt*injury, and ejected*injury interactions (SE,SI,EI);
+proc genmod data=class6.accident;
+	class  seatbelt(ref='0') ejected(ref='0')  injury(ref='0') /param=reference ;
+	model count = injury  ejected seatbelt  seatbelt*injury  ejected*injury  ejected*seatbelt/dist=Poisson;     
+	output out=pred predicted=predicted;
+run;
+ods rtf close;
+PROC PRINT data=pred; run;
+*to pull tables for calculating conditional ORs; 
+proc freq data=pred; 
+table injury*seatbelt*ejected/nocol norow nocum nopercent;
+weight predicted;
+run;
+
+**model as above, but reversing order of association;
+proc genmod data=class6.accident;
+	class  injury(ref='0') seatbelt(ref='0') ejected(ref='0')  /param=reference ;
+	model count = injury  ejected seatbelt  seatbelt*injury  ejected*injury  ejected*seatbelt/dist=Poisson;     
+	output out=pred predicted=predicted;
+run;
+
+**model as above, but reversing parameterization of seatbelt;
+proc genmod data=class6.accident;
+	class  injury(ref='0') seatbelt(ref='1') ejected(ref='0')  /param=reference ;
+	model count = injury  ejected seatbelt  seatbelt*injury  ejected*injury  ejected*seatbelt/dist=Poisson;     
+	output out=pred predicted=predicted;
+run;
+
+**model including slice effects;
+proc genmod data=class6.accident;
+	class  injury(ref='0') seatbelt(ref='0') ejected(ref='0')  /param=glm ;
+	model count = injury  ejected seatbelt  seatbelt*injury  ejected*injury seatbelt*injury*ejected ejected*seatbelt/dist=Poisson link=log;     
+	slice seatbelt*injury/pdiff exp oddsratio ilink;
+run;
+
+ods rtf close;
+PROC PRINT data=pred; run;
+
+*to pull tables for calculating conditional ORs; 
+proc freq data=pred; 
+table injury*seatbelt*ejected/nocol norow nocum nopercent;
+weight predicted;
+run;
