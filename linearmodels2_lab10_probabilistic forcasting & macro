@@ -1,0 +1,199 @@
+libname lect10 "..."; run;
+
+***********EXAMPLE: COMPARING -2LL FOR TWO MODELS;
+*call first model, selecting fit statistics and global tests; 
+ods select FitStatistics GlobalTests;
+proc phreg data=lect10.myel;
+model survtime*status(0) = bun hb protein;
+run;
+*call second model, selecting fit statistics and global tests; 
+ods select FitStatistics  GlobalTests;
+proc phreg data=lect10.myel;
+	model survtime*status(0) = bun hb;
+run;
+
+*inputs the -2LL and degrees of freedom for each model; 
+*computes the change in -2LL and df between each model;
+*tests the significance of difference in fit between model 1 and model 2; 
+data comp0;
+input _2LLbase dfbase _2LLnew dfnew;
+delta_2LL = abs(_2LLnew - _2LLbase);
+delta_df  = abs(dfnew - dfbase);
+pval = 1-probchi(delta_2LL, delta_df); 
+datalines;
+200.503 3 202.938 2
+;
+run;
+proc print data=comp0; run;
+
+
+*****Accelerated failure time models; 
+*for lognormal distribution;
+proc lifereg data=lect10.cirrhosis;
+class sex rx hepatom;
+model years*status(0)=rx hepatom sex bilirubin/dist=lnormal;
+run;
+
+*for exponential;
+proc lifereg data=lect10.cirrhosis;
+class sex rx hepatom;
+model years*status(0)=rx hepatom sex bilirubin/dist=exponential;
+run;
+
+*for weibull;
+proc lifereg data=lect10.cirrhosis;
+class sex rx hepatom;
+model years*status(0)=rx hepatom sex bilirubin/dist=weibull;
+run;
+
+*for log logistic;
+proc lifereg data=lect10.cirrhosis;
+class sex rx hepatom;
+model years*status(0)=rx hepatom sex bilirubin/dist=llogistic;
+run;
+
+*for gamma;
+proc lifereg data=lect10.cirrhosis plots=probplot;
+class sex rx hepatom;
+model years*status(0)=rx hepatom sex bilirubin/dist=gamma;
+run;
+
+
+***probabalistic forecasting with AFT models; 
+
+*create dataset with specified covariates;
+*here we are saying sex is 1, rx is 0, hepatom is 1, bilirubin is 5; 
+data covs;
+input sex rx hepatom bilirubin;
+datalines;
+1 0 1 5
+;
+run;
+
+*call probability plot with specified covariates; 
+ods graphics;
+proc lifereg data=lect10.cirrhosis xdata=covs;
+class sex rx hepatom;
+model years*status(0)=rx hepatom sex bilirubin/dist=weibull;
+probplot /nodata
+plower=.5
+vref(intersect)=75
+vreflabel= '75th percentile';
+inset;
+title;
+run;
+ods graphics off;
+
+
+
+***********simple macro for AFT models;
+%macro AFT(dist, fit); 
+proc lifereg data=lect10.cirrhosis;
+class sex rx hepatom;
+model years*status(0)=rx hepatom sex bilirubin/dist=&dist;
+ods output FitStatistics=check; 
+run;
+data &fit; set check; model="&fit"; if run;
+%mend;
+
+*calls macro for various distributions, stores results;
+%AFT(lnormal, lnorm_fit);
+%AFT(exponential, exp_fit);
+%AFT(weibull, wei_fit);
+%AFT(llogistic, llog_fit);
+%AFT(gamma, gam_fit);
+
+*compares different models; 
+data compare; set lnorm_fit exp_fit wei_fit llog_fit gam_fit; proc print; run;
+proc sort data=compare; by Criterion model; run;
+proc print data=compare; run;
+
+
+
+
+
+
+
+
+
+
+/*====================================================================*/
+
+*MACRO TO COMPARE -2LL FOR TWO NESTED MODELS;
+%macro modcomp (model_base, model_new, inputdat, timevar, censvar, censval, outdat, classvars=%str( ));
+*Fit base model and extract -2LL and df (except if base model is null);
+%if &model_base ne %str( ) %then %do;
+proc phreg data=&inputdat;
+	%if classvars ne %str( ) %then CLASS &classvars;;
+	model &timevar*&censvar(&censval) = &model_base;
+	ods output FitStatistics=_2LL_&outdat._b(where=(Criterion='-2 LOG L')) GlobalTests=df_&outdat._b(keep=df);
+	title "Model : &model_base";
+run;
+data &outdat._b1;
+	length base_model $ 40;
+	merge _2LL_&outdat._b(drop=Criterion WithoutCovariates) df_&outdat._b(obs=1);
+	base_model = "&model_base"; rename WithCovariates = _2LLbase df = dfbase;
+run;
+%end;
+
+*Fit new (comparison) model and extract -2LL and df;
+proc phreg data=&inputdat;
+	%if classvars ne %str( ) %then CLASS &classvars;;
+	model &timevar*&censvar(&censval) = &model_new;
+	ods output FitStatistics=_2LL_&outdat._n(where=(Criterion='-2 LOG L')) GlobalTests=df_&outdat._n(keep=df);
+	title "Model : &model_new";
+run;
+data &outdat._n1; 
+	length new_model $ 40;
+	merge _2LL_&outdat._n(drop=Criterion) df_&outdat._n(obs=1);
+	new_model = "&model_new"; rename WithCovariates = _2LLnew df = dfnew;
+	%if &model_base ne %str( ) %then %do; drop WithoutCovariates;; %end; 
+	%else %do; rename WithoutCovariates=_2LLbase;; dfbase=0;; base_model="Null";; %end;
+run;
+
+*Create output dataset and compute p-value of change in -2LL between base model and new model;
+data &outdat;
+	retain base_model new_model _2LLbase dfbase _2LLnew dfnew;
+	merge %if &model_base ne %str( ) %then &outdat._b1; &outdat._n1;
+	delta_2LL = abs(_2LLnew - _2LLbase);
+	delta_df  = abs(dfnew - dfbase);
+	pval = 1-probchi(delta_2LL, delta_df);
+	title;
+run;
+
+*delete temporary datasets;
+proc datasets library=work nolist; delete _2LL_&outdat._b df_&outdat._b _2LL_&outdat._n df_&outdat._n &outdat._b1 &outdat._n1; run;
+%mend;
+
+
+*--Run Macro for various model comparisons;
+
+*Step 1: Fit univariable models for each variable;
+%modcomp(%str( ), %str(age),     lect10.myel, survtime, status, 0, comp1);
+%modcomp(%str( ), %str(sex),     lect10.myel, survtime, status, 0, comp2);
+%modcomp(%str( ), %str(bun),     lect10.myel, survtime, status, 0, comp3);
+%modcomp(%str( ), %str(ca),      lect10.myel, survtime, status, 0, comp4);
+%modcomp(%str( ), %str(hb),      lect10.myel, survtime, status, 0, comp5);
+%modcomp(%str( ), %str(pcells),  lect10.myel, survtime, status, 0, comp6);
+%modcomp(%str( ), %str(protein), lect10.myel, survtime, status, 0, comp7);
+data step1; set comp1-comp7; proc print; run;
+
+
+*Step 2: Fit multivariable model containing variables that appear to be important from Step 1;
+%modcomp(%str( ), %str(bun hb protein),           lect10.myel, survtime, status, 0, comp8);
+*From this model, omit each variable in turn to determine if exclusion leads to significantly worse fit;
+%modcomp(%str(bun hb protein), %str(hb bun),      lect10.myel, survtime, status, 0, comp9);
+%modcomp(%str(bun hb protein), %str(hb protein),  lect10.myel, survtime, status, 0, comp10);
+%modcomp(%str(bun hb protein), %str(bun protein), lect10.myel, survtime, status, 0, comp11);
+data step2; set comp9-comp11; proc print; run;
+
+
+*Step 3: Add in variables that were not under consideration in Step 2 to see if they substantially
+		 improve model fit;
+%modcomp(%str(hb bun), %str(hb bun age),    lect10.myel, survtime, status, 0, comp12);
+%modcomp(%str(hb bun), %str(hb bun sex),    lect10.myel, survtime, status, 0, comp13);
+%modcomp(%str(hb bun), %str(hb bun ca),     lect10.myel, survtime, status, 0, comp14);
+%modcomp(%str(hb bun), %str(hb bun pcells), lect10.myel, survtime, status, 0, comp15);
+data step3; set comp12-comp15; proc print; run;
+
+
