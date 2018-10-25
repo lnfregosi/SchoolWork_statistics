@@ -1,0 +1,14 @@
+libname lab4 'C:\Users\Downloads'; 
+									
+
+proc reg data = lab4.birthweight; /*Run linear regression models and add options to output the necessary diagnostics*/
+model bwt=age lwt smoke ht/r influence vif;
+run;
+model bwt=age lwt smoke ht/noint collin; /*Runs a no-intercept model so you can see the collineary stats*/
+quit;
+
+proc reg data = lab4.bw_smokers;
+model bwt=age lwt tar nicotine co/r influence vif;
+run;
+model bwt=age lwt tar nicotine co/noint collin;
+quit;
