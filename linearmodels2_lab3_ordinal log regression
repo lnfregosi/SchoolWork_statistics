@@ -1,0 +1,332 @@
+*create dataset;
+Data cancer;
+input ID Therapy $ age agecat $ gender $ Resp @@;
+datalines;
+1	Alt	47	<50		F	4
+2	Alt	70	>=50	M	1
+3	Alt	51	>=50	M	1
+4	Alt	46	<50		F	3
+5	Alt	59	>=50	M	1
+6	Alt	51	>=50	M	3
+7	Seq	52	>=50	M	3
+8	Seq	55	>=50	M	1
+9	Seq	56	>=50	M	3
+10	Alt	47	<50		M	4
+11	Seq	44	<50		M	3
+12	Seq	67	>=50	M	3
+13	Seq	55	>=50	F	2
+14	Alt	45	<50		M	3
+15	Seq	51	>=50	M	2
+16	Seq	35	<50		M	4
+17	Seq	44	<50		M	2
+18	Alt	63	>=50	M	2
+19	Seq	59	>=50	M	3
+20	Seq	62	>=50	M	2
+21	Seq	55	>=50	M	3
+22	Alt	53	>=50	M	3
+23	Seq	67	>=50	M	3
+24	Alt	53	>=50	M	1
+25	Seq	42	<50		F	2
+26	Seq	33	<50		M	3
+27	Seq	50	>=50	M	1
+28	Alt	47	<50		M	4
+29	Seq	46	<50		M	3
+30	Seq	59	>=50	M	1
+31	Seq	57	>=50	M	1
+32	Alt	60	>=50	M	1
+33	Alt	60	>=50	M	2
+34	Seq	49	<50		M	2
+35	Seq	63	>=50	M	1
+36	Alt	48	<50		M	4
+37	Alt	40	<50		M	2
+38	Alt	63	>=50	M	2
+39	Seq	56	>=50	M	4
+40	Alt	49	<50		F	1
+41	Seq	56	>=50	M	2
+42	Seq	55	>=50	M	4
+43	Alt	61	>=50	M	2
+44	Seq	56	>=50	M	3
+45	Seq	64	>=50	M	1
+46	Alt	50	>=50	M	3
+47	Alt	53	>=50	M	2
+48	Seq	51	>=50	M	4
+49	Seq	52	>=50	M	3
+50	Seq	69	>=50	M	2
+51	Alt	52	>=50	M	2
+52	Alt	46	<50		M	4
+53	Seq	70	>=50	M	2
+54	Alt	43	<50		M	4
+55	Alt	51	>=50	M	3
+56	Alt	66	>=50	M	2
+57	Alt	52	>=50	M	1
+58	Seq	53	>=50	M	3
+59	Alt	46	<50		M	1
+60	Seq	52	>=50	M	3
+61	Seq	65	>=50	M	2
+62	Seq	48	<50		M	3
+63	Seq	56	>=50	M	2
+64	Alt	57	>=50	M	2
+65	Alt	65	>=50	M	2
+66	Alt	55	>=50	M	1
+67	Seq	31	<50		F	2
+68	Alt	49	<50		M	3
+69	Alt	58	>=50	M	3
+70	Alt	46	<50		M	1
+71	Alt	58	>=50	M	2
+72	Seq	49	<50		M	2
+73	Seq	41	<50		M	4
+74	Seq	48	<50		M	2
+75	Alt	47	<50		F	2
+76	Alt	53	>=50	F	3
+77	Alt	50	>=50	M	4
+78	Alt	38	<50		M	4
+79	Seq	51	>=50	M	2
+80	Seq	51	>=50	F	3
+81	Alt	53	>=50	M	2
+82	Alt	80	>=50	M	2
+83	Seq	58	>=50	M	3
+84	Alt	60	>=50	M	2
+85	Seq	54	>=50	M	4
+86	Alt	52	>=50	M	1
+87	Seq	52	>=50	M	2
+88	Alt	54	>=50	F	2
+89	Seq	49	<50		M	1
+90	Alt	52	>=50	M	2
+91	Seq	40	<50		M	4
+92	Seq	61	>=50	M	1
+93	Seq	51	>=50	M	4
+94	Seq	64	>=50	M	4
+95	Seq	44	<50		M	1
+96	Alt	51	>=50	M	2
+97	Seq	48	<50		F	3
+98	Alt	65	>=50	M	4
+99	Alt	42	<50		M	1
+100	Seq	43	<50		M	1
+101	Alt	47	<50		M	4
+102	Alt	45	<50		F	3
+103	Seq	65	>=50	F	2
+104	Seq	59	>=50	M	2
+105	Alt	43	<50		M	4
+106	Alt	52	>=50	M	2
+107	Alt	58	>=50	F	2
+108	Alt	38	<50		M	4
+109	Alt	49	<50		M	1
+110	Seq	57	>=50	M	2
+111	Alt	53	>=50	M	1
+112	Seq	47	<50		M	3
+113	Alt	60	>=50	M	1
+114	Alt	41	<50		M	2
+115	Seq	61	>=50	M	3
+116	Alt	47	<50		M	4
+117	Alt	60	>=50	F	1
+118	Seq	46	<50		F	2
+119	Seq	50	>=50	F	3
+120	Seq	64	>=50	M	3
+121	Alt	54	>=50	M	1
+122	Alt	68	>=50	F	1
+123	Alt	40	<50		M	1
+124	Seq	62	>=50	M	1
+125	Alt	63	>=50	F	1
+126	Alt	65	>=50	F	1
+127	Alt	63	>=50	M	3
+128	Alt	59	>=50	M	1
+129	Seq	54	>=50	M	4
+130	Seq	49	<50		M	2
+131	Seq	54	>=50	F	2
+132	Seq	45	<50		M	4
+133	Alt	52	>=50	M	1
+134	Seq	64	>=50	M	2
+135	Alt	53	>=50	M	2
+136	Seq	58	>=50	F	2
+137	Alt	44	<50		M	1
+138	Alt	41	<50		M	3
+139	Seq	51	>=50	F	3
+140	Seq	47	<50		M	2
+141	Seq	55	>=50	M	2
+142	Seq	51	>=50	M	4
+143	Alt	49	<50		M	1
+144	Seq	43	<50		M	3
+145	Alt	54	>=50	M	2
+146	Seq	49	<50		M	3
+147	Seq	52	>=50	M	2
+148	Alt	61	>=50	M	3
+149	Alt	31	<50		F	1
+150	Alt	47	<50		M	3
+151	Seq	48	<50		F	4
+152	Alt	45	<50		M	2
+153	Seq	57	>=50	M	2
+154	Seq	63	>=50	M	2
+155	Seq	56	>=50	M	3
+156	Alt	67	>=50	M	2
+157	Seq	37	<50		M	2
+158	Alt	66	>=50	M	2
+159	Seq	53	>=50	M	2
+160	Seq	61	>=50	F	2
+161	Alt	50	>=50	M	1
+162	Alt	68	>=50	M	2
+163	Seq	37	<50		M	4
+164	Alt	43	<50		M	2
+165	Alt	59	>=50	M	2
+166	Seq	48	<50		M	1
+167	Alt	44	<50		M	1
+168	Seq	43	<50		M	2
+169	Seq	58	>=50	M	2
+170	Alt	56	>=50	F	2
+171	Alt	76	>=50	F	1
+172	Seq	48	<50		M	3
+173	Alt	62	>=50	M	1
+174	Alt	47	<50		M	2
+175	Alt	48	<50		M	1
+176	Seq	43	<50		M	1
+177	Alt	68	>=50	M	2
+178	Alt	47	<50		M	2
+179	Seq	54	>=50	M	2
+180	Seq	60	>=50	F	1
+181	Seq	57	>=50	M	1
+182	Alt	54	>=50	M	1
+183	Seq	41	<50		M	4
+184	Alt	49	<50		M	1
+185	Alt	47	<50		M	2
+186	Seq	56	>=50	F	2
+187	Seq	35	<50		F	2
+188	Alt	62	>=50	M	1
+189	Seq	57	>=50	F	2
+190	Alt	51	>=50	F	1
+191	Seq	64	>=50	F	1
+192	Alt	56	>=50	M	4
+193	Seq	53	>=50	M	3
+194	Seq	53	>=50	M	4
+195	Seq	55	>=50	M	2
+196	Alt	57	>=50	M	2
+197	Alt	55	>=50	M	3
+198	Seq	41	<50		M	3
+199	Seq	52	>=50	F	2
+200	Alt	46	<50		M	3
+201	Alt	52	>=50	F	2
+202	Alt	38	<50		M	2
+203	Alt	67	>=50	M	4
+204	Seq	51	>=50	M	1
+205	Seq	60	>=50	M	1
+206	Alt	49	<50		M	1
+207	Seq	54	>=50	M	2
+208	Alt	49	<50		M	4
+209	Alt	53	>=50	M	2
+210	Alt	53	>=50	M	2
+211	Seq	64	>=50	M	1
+212	Seq	41	<50		M	4
+213	Alt	45	<50		F	1
+214	Seq	65	>=50	M	2
+215	Alt	51	>=50	M	1
+216	Alt	50	>=50	M	2
+217	Seq	56	>=50	M	1
+218	Alt	54	>=50	M	2
+219	Seq	49	<50		M	2
+220	Alt	61	>=50	M	2
+221	Seq	47	<50		M	4
+222	Seq	53	>=50	F	4
+223	Alt	59	>=50	M	2
+224	Seq	59	>=50	M	2
+225	Seq	46	<50		F	1
+226	Seq	69	>=50	M	2
+227	Alt	64	>=50	M	2
+228	Alt	48	<50		M	4
+229	Seq	48	<50		M	2
+230	Seq	50	>=50	M	4
+231	Alt	43	<50		M	3
+232	Seq	53	>=50	M	1
+233	Seq	45	<50		M	3
+234	Alt	43	<50		M	1
+235	Seq	55	>=50	F	1
+236	Seq	61	>=50	M	4
+237	Alt	62	>=50	M	1
+238	Alt	67	>=50	F	1
+239	Seq	41	<50		F	3
+240	Seq	52	>=50	M	2
+241	Alt	52	>=50	M	3
+242	Seq	54	>=50	M	4
+243	Alt	57	>=50	M	1
+244	Seq	50	>=50	M	2
+245	Alt	46	<50		M	2
+246	Alt	51	>=50	M	1
+247	Alt	47	<50		M	4
+248	Alt	63	>=50	M	2
+249	Seq	57	>=50	M	4
+250	Alt	51	>=50	M	1
+251	Alt	55	>=50	M	1
+252	Seq	47	<50		M	2
+253	Alt	64	>=50	M	1
+254	Alt	66	>=50	M	3
+255	Alt	60	>=50	M	4
+256	Alt	65	>=50	F	2
+257	Alt	54	>=50	M	3
+258	Seq	47	<50		M	2
+259	Seq	27	<50		M	2
+260	Alt	50	>=50	M	2
+261	Alt	52	>=50	F	1
+262	Alt	56	>=50	M	2
+263	Seq	56	>=50	M	2
+264	Alt	63	>=50	F	1
+265	Seq	65	>=50	M	1
+266	Alt	56	>=50	M	3
+267	Seq	60	>=50	M	1
+268	Seq	73	>=50	M	1
+269	Seq	48	<50		M	4
+270	Seq	69	>=50	M	1
+271	Alt	58	>=50	M	3
+272	Seq	57	>=50	M	1
+273	Seq	62	>=50	M	1
+274	Seq	52	>=50	M	3
+275	Alt	63	>=50	F	2
+276	Seq	52	>=50	M	4
+277	Seq	58	>=50	M	2
+278	Alt	47	<50		M	2
+279	Alt	52	>=50	M	3
+280	Seq	47	<50		M	2
+281	Seq	39	<50		M	4
+282	Alt	50	>=50	M	4
+283	Seq	60	>=50	M	2
+284	Alt	56	>=50	M	1
+285	Alt	64	>=50	M	1
+286	Seq	51	>=50	M	3
+287	Seq	63	>=50	M	1
+288	Seq	40	<50		M	4
+289	Alt	52	>=50	M	1
+290	Seq	53	>=50	M	2
+291	Seq	44	<50		M	3
+292	Alt	68	>=50	M	1
+293	Seq	55	>=50	M	1
+294	Alt	46	<50		M	4
+295	Seq	44	<50		M	2
+296	Alt	52	>=50	M	1
+297	Seq	55	>=50	M	1
+298	Seq	34	<50		M	4
+299	Seq	52	>=50	M	3
+;
+run;
+
+*call summary stats of response variable;
+proc freq data=cancer;
+	Table RESP;
+run;
+
+proc print data=cancer; run;
+
+
+*a proportional odds model with ascending formulation; 
+proc logistic data=cancer;
+	class therapy(ref='Seq') gender(ref='F') /param=reference;
+	model resp = age gender therapy;
+run;
+
+*a proportional odds model with descending formulation; 
+proc logistic data=cancer;
+	class therapy(ref='Seq') gender(ref='F') /param=reference;
+	model resp(descending) = age gender therapy/scale=none aggregate;
+run;
+
+proc freq data=cancer; 
+Table agecat * gender * therapy * resp /nocol norow nopercent;
+run;
+
+
+
