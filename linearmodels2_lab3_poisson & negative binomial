@@ -1,0 +1,45 @@
+*peek at the data; 
+proc print data=class.tourism (obs=10); run;
+
+*Data exploration; 
+proc sgplot data=class.tourism;
+	vbar trips;
+run;
+proc univariate data=class.tourism normal; 
+var trips; 
+histogram; 
+run;
+
+*Poisson model, not accounting for over-dispersion; 
+proc genmod data=class.tourism;
+	class gender(ref='F') accessroad(ref='No') / param=reference;
+	model trips = age gender income_log accessroad /dist=poisson link=log;
+run; 
+
+*Poisson model, accounting for over-dispersion;
+proc genmod data=class.tourism;
+	class gender(ref='F') accessroad(ref='No') / param=reference;
+	model trips = age gender income_log accessroad /dist=poisson link=log scale=pearson;
+run; 
+
+*testing goodness-of-fit, given df=357 and deviance=418.7783, from above models;
+data poissonpval;
+df=357;
+chi=418.7783;
+pvalue=1-probchi(chi, df);
+run;
+proc print data=poissonpval; run;
+
+*Negative binomial model; 
+proc genmod data=class.tourism;
+	class gender(ref='M') accessroad(ref='No') / param=reference;
+	model trips = gender travel_cost accessroad active /dist=negbin link=log;
+run; 
+
+*checking fit; 
+data negbinpval;
+df=357;
+chi=239.088;
+pvalue=1-probchi(chi, df);
+run;
+proc print data=negbinpval; run;
