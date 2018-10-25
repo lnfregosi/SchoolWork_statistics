@@ -1,0 +1,42 @@
+proc print data=work.prob19;
+run;
+
+*proc univariate gives descriptives for the continuous variables - 
+*proc freq gives full frequency distribution for categorical variable (sex) */
+proc univariate data=work.prob19;
+var age ht wt fev1;
+histogram;
+run;
+
+proc freq data=work.prob19;
+tables sex;
+run;
+
+*Run the linear regression and provides casewise statistics for residuals (r option)
+proc reg data=work.prob19;
+model fev1=ht wt age / r;
+run;
+quit;
+
+/*Below is the code we reviewed in lab on what to do if you want to create a plot that SAS doesn't
+produce automatically. First, we write output to let SAS know we want to save some of the output from 
+the regression into a new dataset. The out= option allows us to specify the name of that dataset. 
+It can be called whatever you want, but should be a new dataset as it will overwrite any dataset with
+the same name. On blackboard, the PDF file "SAS Output keywords" lists all of the variables you can save 
+along with the keywords. You need to type the keyword, the equals sign and then the variable name you want
+to assign to those values in the new dataset. See below for example. After running the code below, the dataset 
+'resids' will have all of the original data in prob19 plus the predicted values and the jackknife residuals.*/
+
+proc reg data=work.prob19;
+model fev1=ht wt age / r;
+output out=work.resids p=fev_pred rstudent=jackknife; 
+run;
+quit;
+
+proc print data=work.resids;
+run;
+
+/*Create the scatter plot of jackknife residuals vs predicted fev1. */
+proc sgplot data=work.resids; /*Note you are now using the new dataset output by the regression*/
+scatter x=fev_pred y=jackknife;
+run;
