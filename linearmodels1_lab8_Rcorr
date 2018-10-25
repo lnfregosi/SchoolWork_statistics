@@ -1,0 +1,45 @@
+libname alm 'N:\Courses\MPH-0812\2017-Spring I'; /* replace with your libname and path */
+
+title 'Linear mixed model for FEV data';
+title2 'Autoregressive correlation structure';
+proc mixed data=alm.ch25q04;
+class subj week(ref=first);
+model fev = week / s;
+repeated / subject=subj type=ar(1) r rcorr;
+run;
+
+title2 'Exchangeable (CS) correlation structure';
+proc mixed data=alm.c25q4;
+class subj week(ref=first);
+model fev = week / s;
+repeated / subject=subj type=cs r rcorr;
+run;
+
+title2 'Unstructured';
+proc mixed data=alm.c25q4;
+class subj week(ref=first);
+model fev = week / s;
+repeated / subject=subj type=un r rcorr;
+run;
+
+title 'ANOVA of FEV data (independence)';
+proc anova data=alm.c25q4;
+class week;
+model fev = week;
+means week / bon clm;
+run;
+quit;
+
+/** optional addition of a contrast to test 
+    H0: mu(week 1) = average of mu(week 2, week 3, week 4, week 5) 
+ to express this as contrast need H0 in form where sum of mu's equals zero, so
+    H0: 1*mu1 - 0.25*mu2 - 0.25*mu3 - 0.25*mu4 - 0.25*mu5 = 0 **/
+
+title 'Linear mixed model for FEV data';
+title2 'Unstructured';
+proc mixed data=alm.c25q4;
+class subj week(ref=first);
+model fev = week / s;
+repeated / subject=subj type=un r rcorr;
+contrast 'week 1 vs 2-5' week 1 -0.25 -0.25 -0.25 -0.25;
+run;
