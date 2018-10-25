@@ -1,0 +1,104 @@
+libname lab "...";
+
+*view dataset;
+proc print data=lab.cyto noobs; run;
+
+*Simple exploratory tables;
+proc freq data=lab.cyto;
+	Table censor;
+run;
+
+*Call Kaplan Meier plot of S(t);
+proc lifetest data=lab.cyto plots=s(cl atrisk)  method=km;
+	time time*censor(0);
+run;
+
+*Call Life Table estimation of S(t);
+proc lifetest data=lab.cyto plots=(s) method=lt;
+	time time*censor(0);
+run;
+
+*call hazard function;
+proc lifetest data=lab.cyto plots=(h) atrisk method=lt;
+	time time*censor(0);
+run;
+
+*call pdf;
+proc lifetest data=lab.cyto plots=(p) atrisk method=lt;
+	time time*censor(0);
+run;
+
+*Contrasting survival curves;
+proc lifetest data=lab.cyto plots=(s) atrisk method=km;
+	time time*censor(0);
+	strata group;
+run;
+
+*Contrasts with custom dates via timelist statement;
+proc lifetest data=lab.cyto plots=(s) method=km timelist=103;
+	time time*censor(0);
+	strata group;
+run;
+
+*survival function with confidence limits. Note ODS statements!;
+ods graphics; 
+proc lifetest data=lab.cyto method=km plots=s(cl atrisk);
+	time time*censor(0);
+	strata group;
+run;
+ODS GRAPHICS OFF;
+
+*print initial data from leukemia study;
+proc print data=lab.leukem (obs=10); run;
+
+*estimate survival function with K-M; 
+proc lifetest data=lab.leukem method=km plots=(s);
+	time survt*relapse(0);
+run;
+
+*estimate survival function stratified by treatment;
+proc lifetest data=lab.leukem method=km plots=(s);
+	time survt*relapse(0);
+	strata rx;
+run;
+
+*as above, but with confidence limits;
+ODS GRAPHICS ON;
+proc lifetest data=lab.leukem method=km plots=s(cl atrisk);
+	time survt*relapse(0);
+	strata rx;
+run;
+ODS GRAPHICS OFF;
+
+*requesting custom survival intervals, e.g. at 16 days; 
+proc lifetest data=lab.leukem method=km plots=s(cl atrisk) timelist=16;
+	time survt*relapse(0);
+	strata rx;
+run;
+
+*stratify by covariate (e.g., white blood cell count);
+proc lifetest data=lab.leukem method=km plots=s;
+	time survt*relapse(0);
+	strata wbc;
+run;
+
+*Test Rx, while controlling for WBC via stratification;
+proc lifetest data=lab.leukem method=km plots=s;
+	time survt*relapse(0);
+	strata wbc;
+	test rx;
+run;
+
+*create simulated variables, "drug" and "edu";
+data lab.leukem; 
+set lab.leukem;
+if ranuni(12345) < 0.5 then drug = 0; else drug = 1;
+if ranuni(12345) <= 0.3 then edu = 0; else edu=1;
+if ranuni(12345) >= 0.7 then edu=2;
+run;
+
+*stepwise test for rx, with covariates WBC, drug, and edu;
+proc lifetest data=lab.leukem method=km plots=s;
+	time survt*relapse(0);
+	test rx wbc drug edu;
+run;
