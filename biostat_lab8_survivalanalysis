@@ -1,0 +1,58 @@
+data Lab8;
+input Stain $ time_in_study vital_status;
+datalines;
+Negative 23 0
+Negative 47 0
+Negative 69 0
+Negative 70 1
+Negative 71 1
+Negative 100 1
+Negative 101 1
+Negative 148 0
+Negative 181 0
+Negative 198 1
+Negative 208 1
+Negative 212 1
+Negative 224 1
+Positive 5 0
+Positive 8 0
+Positive 10 0
+Positive 13 0
+Positive 18 0
+Positive 24 0
+Positive 26 0
+Positive 26 0
+Positive 31 0
+Positive 35 0
+Positive 40 0
+Positive 41 0
+Positive 48 0
+Positive 50 0
+Positive 59 0
+Positive 61 0
+Positive 68 0
+Positive 71 0
+Positive 76 1
+Positive 105 1
+Positive 107 1
+Positive 109 1
+Positive 113 0
+Positive 116 1
+Positive 118 0
+Positive 143 0
+Positive 154 1
+Positive 162 1
+Positive 188 1
+Positive 212 1
+Positive 217 1
+Positive 225 1
+;
+run;
+
+*Creating a Kaplan-Mier Curve comparing both groups;
+
+proc lifetest data = lab8;
+time Time_In_Study*Vital_Status(1);
+strata stain;
+run;
+
