@@ -1,0 +1,36 @@
+*Use linear regression to estimate the relationship between PM2.5 concentration during
+*pregnancy and subsequent birthweight (recreate the model from last-weeks lab). Write
+*out the regression equation.
+
+proc import out=work.lab2 datafile="C:\Users\Downloads\air_births_sample.xlsx"
+dbms=xlsx replace; getnames=yes;
+run;
+proc reg data=work.lab2 plots=none; /* plots=none suppresses graphs, saves time */
+model birthweight=pm_conc; /* later in course we will want to see graphs but not yet */
+run;
+quit;
+
+*Adjust your model for maternal age at birth. Write out the regression equation.
+proc reg data=work.lab2 plots=none;
+model birthweight=pm_conc mage;
+run;
+quit;
+
+*Create a new variable for the interaction between pm_conc and maternal age. Then,
+*include the new variable in your model.
+
+data work.lab2;
+set work.lab2;
+pm_mage=pm_conc*mage;
+run;
+proc reg data=work.lab2;
+model birthweight=pm_conc mage pm_mage;
+run;
+quit;
+
+*Remove age (and the interaction) from your model and adjust your model for prepregnancy bmi.
+
+proc reg data=work.lab2;
+model birthweight=pm_conc prepreg_bmi;
+run;
+quit;
