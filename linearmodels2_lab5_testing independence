@@ -1,0 +1,126 @@
+libname class5 
+
+proc print data=class5.accident noobs; run;
+
+*create cross tabs; 
+proc freq data=class5.accident; 
+tables injury*seatbelt*ejected/nocol nopercent norow;
+weight count; 
+run;
+
+*as above, without row/col stats; 
+proc freq data=class5.accident; 
+tables injury*seatbelt*ejected/nocol nopercent norow;
+weight count; 
+run;
+
+*reminder: checking p value of log-linear good-ness of fit tests, using deviance;
+*input deviance and df values from 'criteria for assessing goodness of fit' tables;  
+data testp; 
+dev=23.0100; 
+df=1;
+pvalue=1-probchi(dev, df); 
+run;
+proc print data=testp noobs; run;
+
+
+*model testing only main effects  (S,E,I) this is the independence model;
+
+proc genmod data=class5.accident;
+	class seatbelt(ref='0') ejected(ref='0') injury(ref='0') /param=reference ;
+	model count = seatbelt ejected injury /dist=Poisson;     
+run;
+
+*checking pvalue of deviance statistics from independent model; 
+data testp2; 
+dev=11444.3754; 
+df=4;
+pvalue=1-probchi(dev, df); 
+run;
+proc print data=testp2 noobs;  run;
+
+***models testing joint independence;
+*model testing seatbelt, and ejected*injury interaction (S,EI);
+
+proc genmod data=class5.accident;
+	class seatbelt(ref='0') ejected(ref='0') injury(ref='0') /param=reference ;
+	model count = seatbelt ejected injury ejected*injury  /dist=Poisson;     
+run;
+
+*model testing ejecting, and seatbelt by injury interaction (E,SI);
+proc genmod data=class5.accident;
+	class seatbelt(ref='0') ejected(ref='0') injury(ref='0') /param=reference ;
+	model count = ejected seatbelt injury seatbelt*injury  /dist=Poisson;     
+run;
+
+*model testing injury and seatbelt*ejected interaction (I,SE);
+proc genmod data=class5.accident;
+	class seatbelt(ref='0') ejected(ref='0') injury(ref='0') /param=reference ;
+	model count = injury  seatbelt ejected seatbelt*ejected  /dist=Poisson;     
+run;
+
+***models testing conditional independence;
+*model testing seatbelt*ejected and seatbelt*injury interaction  (SE,SI);
+proc genmod data=class5.accident;
+	class seatbelt(ref='0') ejected(ref='0') injury(ref='0') /param=reference ;
+	model count = injury  seatbelt ejected seatbelt*ejected  seatbelt*injury /dist=Poisson;     
+run;
+*model testing seatbelt*ejected and ejected*injury interaction  (SE,EI);
+proc genmod data=class5.accident;
+	class seatbelt(ref='0') ejected(ref='0') injury(ref='0') /param=reference ;
+	model count = injury  seatbelt ejected seatbelt*ejected  ejected*injury /dist=Poisson;     
+run;
+*model testing seatbelt*injury and ejected*injury interaction (SI,EI);
+proc genmod data=class5.accident;
+	class seatbelt(ref='0') ejected(ref='0') injury(ref='0') /param=reference ;
+	model count = injury  seatbelt ejected seatbelt*injury  ejected*injury /dist=Poisson;     
+run;
+
+***homogenous model
+*model testing homogenous model, i.e. seatbelt*ejected, seatbelt*injury, and ejected*injury interactions (SE,SI,EI);
+proc genmod data=class5.accident;
+	class seatbelt(ref='0') ejected(ref='0') injury(ref='0') /param=reference ;
+	model count = injury  seatbelt ejected seatbelt*injury  ejected*injury  seatbelt*ejected /dist=Poisson;     
+run;
+
+***saturated model
+*saturated model testing all levels of potential interactions and main effects  (SEI);
+proc genmod data=class5.accident;
+	class seatbelt(ref='0') ejected(ref='0') injury(ref='0') /param=reference ;
+	model count = injury | seatbelt | ejected /dist=Poisson;     
+run;
+
+
+*Computing p-values for goodness-of-fit statistics;
+data G2_pvals;
+input G2 df;
+pvalue = 1-probchi(G2,df);
+datalines;
+11444.38	4
+9021.29		3
+9557.06		3
+3567.72		3
+1680.41		2
+1144.64		2
+7133.98		2
+2.85		1
+;
+run;
+proc print data=G2_pvals; run;
+
+*Best model, based on above: (SE,SI,EI);
+ods rtf;
+proc genmod data=class5.accident;
+	class seatbelt(ref='0') ejected(ref='0') injury(ref='0') /param=reference ;
+	model count = injury  seatbelt ejected seatbelt*injury  ejected*injury  seatbelt*ejected /dist=Poisson;
+	output out=pred predicted=predicted;
+run;
+ods rtf close;
+PROC PRINT data=pred; run;
+
+*to pull tables for calculating conditional ORs; 
+proc freq data=pred; 
+table injury*seatbelt*ejected/nocol norow nocum nopercent;
+weight predicted;
+run;
+
