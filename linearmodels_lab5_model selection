@@ -1,0 +1,27 @@
+libname lab5 '/folders/myfolders/data';
+
+proc reg data=lab5.birthweight; /*Run linear regression models using different selection criteria*/
+  model bwt=age lwt smoke ptl ht ui ftv/selection=forward slentry=0.05; /*Code for forward selection*/
+run;
+ 
+ model bwt=age lwt smoke ptl ht ui ftv/selection=forward slentry=0.10;
+run;
+  
+  model bwt=age lwt smoke ptl ht ui ftv/selection=backward slstay=0.05; /*Code for backward selection*/
+run;
+  
+  model bwt=age lwt smoke ptl ht ui ftv/selection=rsquare adjrsq cp rmse; /*Code for all subsets selection*/
+run;
+  
+  model bwt=age lwt smoke ptl ht ui ftv/selection=stepwise slentry=0.05 slstay=0.05; /*Sample code for step-wise selection*/
+quit;
+
+data bw;
+  set lab5.birthweight;
+  lwt_ht=lwt*ht;
+run;
+
+proc reg data=bw; 
+  model bwt=lwt ht lwt_ht age smoke ptl  ui ftv/selection=forward slentry=0.05 include=3;
+run;
+quit;
