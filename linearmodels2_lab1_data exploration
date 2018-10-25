@@ -1,0 +1,214 @@
+*imports a dataset into SAS. 
+*in all import procedures, note the path (in file statement) must change relative to your own computer!
+*The FILE= statement specifies the path (folder) of the file you want to import, and provides the filename (all in quotes)
+*The DBMS statement specifies the database management system to use. For excel use EXCEL, or for csv use CSV. 
+*The OUT statement provides the name of the new SAS dataset to output; 
+proc import file="C:\Users\curtip01\Desktop\Teaching\MPH0822\Lectures\Lecture 1\PBDE_example.csv" dbms=csv out=pbde replace; run;
+
+*proc content is used to inventory the variables in your dataset, and confirm their type, i.e. char/num
+*use the position option to represent variable in the order they appear in your dataset;
+PROC CONTENTS DATA=work.pbde position;
+RUN;
+
+*proc print lets you take a look at your data. 
+*note the DATA= statement specifies to use the dataset you output from the import procedure
+*in the previous code we referenced the WORK library, where all temporary datasets are stored 
+*by default if no library is named SAS assumes the WORK library is meant
+*the OBS=10 statement indicates only the first 10 observations are to be printed;
+proc print data=pbde (obs=10); run;
+
+*Now we subset these data to create a new dataset
+*this should include only kids with fMRI data AND behavioral data
+*fMRI_ID indicates they have fMRI data, BRIEF_GEC_Raw indicates behavioral data
+*We'll do this with a data step;
+Data new_set; 
+set pbde; 
+if nmiss(fMRI_ID) then delete; 
+run;
+
+*now remove any remaining subjects lacking behavioral data;
+*note the same data set is named in the DATA and SET statements; 
+Data new_set; 
+set new_set; 
+if nmiss(BRIEF_GEC_Raw) then delete; 
+run;
+
+*print to confirm your results;
+proc print data=new_set; run;
+
+*now importing additional covariate data; 
+*note it is in excel format so we switch the DBMS statement accordingly; 
+proc import 
+file="C:\Users\curtip01\Desktop\Teaching\MPH0822\Lectures\Lecture 1\PBDE_covs.xlsx" 
+dbms=EXCEL out=covs replace; 
+run;
+
+*now we want to combine these files
+*first we need to sort both data sets by the merging variable, i.e. the ID;
+proc sort data=new_set; 
+by SubjectID;
+run;
+proc sort data=covs;
+by SubjectID;
+run;
+
+*to merge the files, we use the MERGE statement in a data step
+*we use BY SubjectID to indicate this is the linking variable between files;
+*the new data set will be called combined; 
+data combined; 
+merge new_set covs; 
+by SubjectID;
+run;
+
+*re-subsetting the data to only exclude cases 
+*with missing fMRI or behavioral data
+*this time in a single step; 
+data combined; 
+set combined;
+if nmiss(BRIEF_GEC_Raw) OR nmiss(fMRI_ID) then delete;
+run;
+proc print data=combined; 
+run;
+
+*import new data;
+proc import 
+file="C:\Users\curtip01\Desktop\Teaching\MPH0822\Lectures\Lecture 1\PBDE_add.xlsx" 
+dbms=EXCEL out=add replace; 
+run;
+*view new "add" dataset;
+proc print data=add; run;
+
+*append "add" dataset to the "combined dataset";
+data newcombo; 
+set combined add; 
+run;
+
+*Dropping uninteresting variables;
+data newcombo; 
+set newcombo; 
+drop PBDE28LOG;
+run; 
+*alternative;
+data newcombo;
+set newcombo; 
+keep SubjectID fmri_id BRIEF_GEC_RAW PBDE47LOG PBDE99LOG MatEducation home Childsex; 
+run;
+
+*Renaming variables; 
+data newcombo;
+set newcombo;
+rename BRIEF_GEC_RAW=behavior; 
+run;
+ 
+*create a new random variable;
+data newcombo; 
+set newcombo; 
+if ranuni(12345) <0.5 then MomSex=1; else Momsex=2;
+run;
+
+
+**********************************;
+*Data Exploration; 
+*to compute means and summary statistics on continuous variables;
+proc means data=newcombo n mean median min max std nmiss;
+class childsex; 
+var behavior; 
+run; 
+
+*for summary statistics and histograms; 
+proc univariate data=newcombo; 
+class childsex; 
+var behavior;
+histogram behavior; 
+run;
+
+
+*for summary statistics and normality testing; 
+proc univariate data=newcombo normal; 
+class childsex; 
+var behavior;
+histogram behavior; 
+run;
+
+*for frequency tables on categorical outcomes;
+proc freq data=newcombo; 
+Table ChildSex/nocum;
+Table MomSex;
+Table ChildSex*MomSex/nocol nopercent;
+run;
+
+*for vertical box plots;
+proc sgplot data=newcombo;
+	vbox home /category=ChildSex boxwidth=0.5; *vbox: produces vertical boxplot of Age
+												Boxwidth: width of boxplot range: 0-1(default 0.4)
+												category: a boxplot is created for each distinct 
+														 value of variable specified in CATEGORY;
+	xaxis label="Child sex";
+run; 
+
+*for horizontal box plots; 
+proc sgplot data=newcombo;
+	hbox home /category=ChildSex boxwidth=0.5; *vbox: produces vertical boxplot of Age
+												Boxwidth: width of boxplot range: 0-1(default 0.4)
+												category: a boxplot is created for each distinct 
+														 value of variable specified in CATEGORY;
+	xaxis label="Child sex";
+run; 
+*use the GROUP and CATEGORY options together to create stratified boxplots for each
+distinct combination of levels of 2 categorical variables;
+proc sgplot data=newcombo;
+	vbox home / group=Childsex category=MatEducation; 
+	xaxis label="Maternal Education";
+run; 
+
+
+**Data transformation
+
+*to create a new variable based on binning continuous variables;
+DATA newcombo;
+SET newcombo;
+IF HOME < 45 				then HOMEGRP=1;
+IF 45 <= HOME < 65			then HOMEGRP=2;
+IF HOME > 65 				then HOMEGRP=3;
+RUN;
+
+*to create a new variable based on binning continuous variables;
+DATA newcombo;
+SET newcombo;
+IF MATeducation=1 or MatEducation=2 then MatSchool="<HS"; 
+else Matschool=">HS";
+run;
+
+*Use PROC Standard to standardize a variable to a z score, i.e. mean 0, sd=1
+*the out= statement names your new dataset with z scored variable
+*the var specifies what variable to standardize; 
+proc standard data=newcombo out=zscore mean=0 std=1; 
+var behavior;
+run;
+*check distribution;
+proc univariate data=zscore;
+var behavior;
+histogram;
+run;
+
+
+*as above, but now with T-scores, i.e. mean=50, SD=10;
+proc standard data=newcombo out=tscore mean=50 std=10; 
+var behavior;
+run;
+*check distribution;
+proc univariate data=tscore; 
+var behavior; 
+histogram;
+run;
+
+*transform raw scores with reciprocal root transform;
+data newcombo; 
+set newcombo; 
+new_beh = behavior**2;
+run;
+*check transform;
+proc univariate data=newcombo normal; 
+var behavior new_beh;
+histogram;
+run;
