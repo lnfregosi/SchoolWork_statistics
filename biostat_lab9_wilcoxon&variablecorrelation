@@ -1,0 +1,48 @@
+libname lab9 "/folders/myfolders/Biostats17/datasets/";
+
+* Use SAS to perform a Wilcoxon Rank-Sum test. Perform the test at a 5% level of significance.
+data lab9.q1;
+input group QOL @@;
+datalines;
+1 80 1 55 1 63 1 76 1 88 1 45 1 65 1 77
+2 85 2 50 2 65 2 78 2 82 2 55 2 68 2 90
+;
+run;
+/* rank sum test */
+proc npar1way data=lab9.q1 wilcoxon;
+class group;
+var QOL;
+run;
+
+*Use SAS to generate a scatter diagram, to estimate the correlation between variables, and to test
+*if the correlation is significant. In addition, estimate a simple linear regression equation and
+*compute R2
+
+data lab9.q2;
+input cigs CVD_risk @@;
+datalines;
+0 12
+2 20
+6 50
+8 68
+12 75
+0 8
+2 10
+20 80
+;
+run;
+
+* Scatter plot
+proc sgplot data=lab9.q2;
+scatter x = cigs y = CVD_risk;
+run;
+
+* Correlation (r)
+proc corr data=lab9.q2;
+var cigs CVD_risk;
+run;
+
+* Regression & R2
+proc reg data=lab9.q2;
+model CVD_risk = cigs;
+run;
